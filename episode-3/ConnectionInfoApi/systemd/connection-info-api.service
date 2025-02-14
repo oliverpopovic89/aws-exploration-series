@@ -1,0 +1,10 @@
+[Unit]
+Description=Connection Info API
+
+[Service]
+Type=notify
+ExecStart=/opt/connection-info-api/ConnectionInfoApi --urls=http://0.0.0.0:57171
+Environment=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+
+[Install]
+WantedBy=multi-user.target
