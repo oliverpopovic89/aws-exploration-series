@@ -3,7 +3,7 @@ Description=Connection Info API
 After=network.target
 
 [Service]
-Type=simple
+Type=notify
 
 # Run as a dedicated non-root user & group for least privilege
 User=connectioninfo
