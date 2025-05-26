@@ -1,10 +1,39 @@
 [Unit]
 Description=Connection Info API
+After=network.target
 
 [Service]
-Type=notify
+Type=simple
+
+# Run as a dedicated non-root user & group for least privilege
+User=connectioninfo
+Group=connectioninfo
+
+# Working directory for relative paths, logs, configs
+WorkingDirectory=/opt/connection-info-api
+
+# Start the app with necessary arguments
 ExecStart=/opt/connection-info-api/ConnectionInfoApi --urls=http://0.0.0.0:57171
+
+# Automatically restart on failure with 5 seconds delay
+Restart=always
+RestartSec=5
+
+# Environment variables (Production mode + globalization invariant)
+Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+
+# Security hardening options
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+MemoryDenyWriteExecute=true
 
 [Install]
 WantedBy=multi-user.target
