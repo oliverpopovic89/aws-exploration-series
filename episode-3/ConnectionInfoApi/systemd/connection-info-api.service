@@ -1,39 +1,63 @@
 [Unit]
 Description=Connection Info API
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=notify
 
-# Run as a dedicated non-root user & group for least privilege
+# Least-privilege user and group
 User=connectioninfo
 Group=connectioninfo
 
-# Working directory for relative paths, logs, configs
+# App directory
 WorkingDirectory=/opt/connection-info-api
 
-# Start the app with necessary arguments
+# Start the ASP.NET Core self-contained single-file app
 ExecStart=/opt/connection-info-api/ConnectionInfoApi --urls=http://0.0.0.0:57171
 
-# Automatically restart on failure with 5 seconds delay
-Restart=always
+# Restart on failure
+Restart=on-failure
 RestartSec=5
+TimeoutStopSec=10
 
-# Environment variables (Production mode + globalization invariant)
+# Optional: post-start health check for observability
+ExecStartPost=/usr/bin/curl --fail --silent --max-time 5 http://localhost:57171/healthz
+
+# Runtime environment
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 
-# Security hardening options
+# Logging (systemd journal)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=connection-info-api
+
+# Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
+ProtectSystem=strict
 ProtectHome=true
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-RestrictNamespaces=true
-PrivateDevices=true
 ProtectKernelModules=true
 ProtectKernelTunables=true
-MemoryDenyWriteExecute=true
+ProtectControlGroups=true
+PrivateDevices=true
+RestrictNamespaces=true
+LockPersonality=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=~
+
+# Network family restrictions (IPv4, IPv6, UNIX sockets)
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Runtime directory if used
+RuntimeDirectory=connectioninfo
+RuntimeDirectoryMode=0750
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
 
 [Install]
 WantedBy=multi-user.target
